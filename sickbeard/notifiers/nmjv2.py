@@ -127,14 +127,15 @@ class NMJv2Notifier:
             return False
                 
         # if the result was a number then consider that an error
-        error_codes=["8","11","22","49","50","51","60"]
+        error_codes=["8","11","22","49","50","51","60","61"]
         error_messages=["Invalid parameter(s)/argument(s)",
                         "Invalid database path",
                         "Insufficient size",
                         "Database write error",
                         "Database read error",
                         "Open fifo pipe failed",
-                        "Read only file system"]
+                        "Read only file system",
+                        "No internet connection"]
         if int(result1) > 0:
             index=error_codes.index(result1)
             logger.log(u"Popcorn Hour returned an error: %s" % (error_messages[index]))
