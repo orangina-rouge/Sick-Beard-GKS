@@ -434,7 +434,7 @@ def listMediaFiles(path):
         fullCurFile = ek.ek(os.path.join, path, curFile)
 
         # if it's a folder do it recursively
-        if ek.ek(os.path.isdir, fullCurFile) and not curFile.startswith('.') and not curFile == 'Extras':
+        if ek.ek(os.path.isdir, fullCurFile) and not os.path.islink(fullCurFile) and not curFile.startswith('.') and not curFile == 'Extras':
             files += listMediaFiles(fullCurFile)
 
         elif isMediaFile(curFile):
@@ -454,6 +454,7 @@ def copyFile(srcFile, destFile):
 def moveFile(srcFile, destFile):
     try:
         ek.ek(os.rename, srcFile, destFile)
+        ek.ek(os.symlink, destFile, srcFile)
         fixSetGroupID(destFile)
     except OSError:
         copyFile(srcFile, destFile)
