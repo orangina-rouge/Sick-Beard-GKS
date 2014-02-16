@@ -34,6 +34,12 @@ def logHelper (logMessage, logLevel=logger.MESSAGE):
     logger.log(logMessage, logLevel)
     return logMessage + u"\n"
 
+def isNotLink (dirName, fileName):
+    try
+        return not ek.ek(os.path.islink, ek.ek(os.path.join, dirName, fileName))
+    except: OSError, e
+        return False
+
 def processDir (dirName, nzbName=None, recurse=False):
     """
     Scans through the files in dirName and processes whatever media files it finds
@@ -82,20 +88,18 @@ def processDir (dirName, nzbName=None, recurse=False):
             return returnStr
 
     fileList = ek.ek(os.listdir, dirName)
+    fileListWithoutLink = filter(lambda x: isNotLink(dirName, x), fileList)
 
     # split the list into video files and folders
-    folders = filter(lambda x: ek.ek(os.path.isdir, ek.ek(os.path.join, dirName, x)), fileList)
-    videoFiles = filter(helpers.isMediaFile, fileList)
+    folders = filter(lambda x: ek.ek(os.path.isdir, ek.ek(os.path.join, dirName, x)), fileListWithoutLink)
+    videoFiles = filter(helpers.isMediaFile, fileListWithoutLink)
 
     # recursively process all the folders
     for curFolder in folders:
-        if os.path.islink(ek.ek(os.path.join, dirName, curFolder)):
-            returnStr += logHelper(u"Folder " + curFolder + " is a symlink, skipping it")
-        else:
-            returnStr += logHelper(u"Recursively processing a folder: "+curFolder, logger.DEBUG)
-            returnStr += processDir(ek.ek(os.path.join, dirName, curFolder), recurse=True)
+        returnStr += logHelper(u"Recursively processing a folder: "+curFolder, logger.DEBUG)
+        returnStr += processDir(ek.ek(os.path.join, dirName, curFolder), recurse=True)
 
-    remainingFolders = filter(lambda x: ek.ek(os.path.isdir, ek.ek(os.path.join, dirName, x)), fileList)
+    remainingFolders = filter(lambda x: ek.ek(os.path.isdir, ek.ek(os.path.join, dirName, x)), fileListWithoutLink)
 
     # If nzbName is set and there's more than one videofile in the folder, files will be lost (overwritten).
     if nzbName != None and len(videoFiles) >= 2:
@@ -105,38 +109,34 @@ def processDir (dirName, nzbName=None, recurse=False):
     for cur_video_file_path in videoFiles:
 
         cur_video_file_path = ek.ek(os.path.join, dirName, cur_video_file_path)
-        if os.path.islink(cur_video_file_path):
-            returnStr += logHelper(u"File " + cur_video_file_path + " is a symlink, skipping it")
+
+        try:
+            processor = postProcessor.PostProcessor(cur_video_file_path, nzbName)
+            process_result = processor.process()
+            process_fail_message = ""
+        except exceptions.PostProcessingFailed, e:
+            process_result = False
+            process_fail_message = ex(e)
+
+        returnStr += processor.log 
+
+        # as long as the postprocessing was successful delete the old folder unless the config wants us not to
+        if process_result:
+
+            if len(videoFiles) == 1 and not sickbeard.KEEP_PROCESSED_DIR and \
+                ek.ek(os.path.normpath, dirName) != ek.ek(os.path.normpath, sickbeard.TV_DOWNLOAD_DIR) and \
+                len(remainingFolders) == 0:
+
+                returnStr += logHelper(u"Deleting folder " + dirName, logger.DEBUG)
+
+                try:
+                    shutil.rmtree(dirName)
+                except (OSError, IOError), e:
+                    returnStr += logHelper(u"Warning: unable to remove the folder " + dirName + ": " + ex(e), logger.WARNING)
+
+            returnStr += logHelper(u"Processing succeeded for "+cur_video_file_path)
+            
         else:
-            returnStr += logHelper(u"File " + cur_video_file_path + " is not a symlink, processing it", logger.DEBUG)
-
-            try:
-                processor = postProcessor.PostProcessor(cur_video_file_path, nzbName)
-                process_result = processor.process()
-                process_fail_message = ""
-            except exceptions.PostProcessingFailed, e:
-                process_result = False
-                process_fail_message = ex(e)
-
-            returnStr += processor.log 
-
-            # as long as the postprocessing was successful delete the old folder unless the config wants us not to
-            if process_result:
-
-                if len(videoFiles) == 1 and not sickbeard.KEEP_PROCESSED_DIR and \
-                    ek.ek(os.path.normpath, dirName) != ek.ek(os.path.normpath, sickbeard.TV_DOWNLOAD_DIR) and \
-                    len(remainingFolders) == 0:
-
-                    returnStr += logHelper(u"Deleting folder " + dirName, logger.DEBUG)
-
-                    try:
-                        shutil.rmtree(dirName)
-                    except (OSError, IOError), e:
-                        returnStr += logHelper(u"Warning: unable to remove the folder " + dirName + ": " + ex(e), logger.WARNING)
-
-                returnStr += logHelper(u"Processing succeeded for "+cur_video_file_path)
-                
-            else:
-                returnStr += logHelper(u"Processing failed for "+cur_video_file_path+": "+process_fail_message, logger.WARNING)
+            returnStr += logHelper(u"Processing failed for "+cur_video_file_path+": "+process_fail_message, logger.WARNING)
 
     return returnStr
