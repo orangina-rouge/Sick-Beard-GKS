@@ -66,6 +66,11 @@ def logHelper(logMessage, logLevel=logger.MESSAGE):
     logger.log(logMessage, logLevel)
     return logMessage + u"\n"
 
+def isNotLink (dirName, fileName):
+    try:
+        return not ek.ek(os.path.islink, ek.ek(os.path.join, dirName, fileName))
+    except OSError, e:
+        return False
 
 def processDir(dirName, nzbName=None, method=None, recurse=False, pp_options={}):
     """
