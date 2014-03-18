@@ -128,7 +128,7 @@ def processDir(dirName, nzbName=None, method=None, recurse=False, pp_options={})
     folders = filter(lambda x: ek.ek(os.path.isdir, ek.ek(os.path.join, dirName, x)), fileListWithoutLink)
 
     # videoFiles, sorted by size, process biggest file first. Leaves smaller same named file behind
-    videoFiles = sorted(filter(helpers.isMediaFile, fileListWithoutLink), key=lambda x: os.path.getsize(ek.ek(os.path.join, dirName, x)), reverse=True)
+    videoFiles = sorted(filter(helpers.isMediaFile, fileListWithoutLink), key=lambda x: ek.ek(os.path.getsize, ek.ek(os.path.join, dirName, x)), reverse=True)
     remaining_video_files = list(videoFiles)
 
     num_videoFiles = len(videoFiles)
@@ -152,7 +152,7 @@ def processDir(dirName, nzbName=None, method=None, recurse=False, pp_options={})
             returnStr += logHelper(u"Recursively processing a folder: " + cur_folder, logger.DEBUG)
             returnStr += processDir(cur_folder, nzbName=parent_nzbName, recurse=True, method=method, pp_options=pp_options)
 
-    remainingFolders = filter(lambda x: ek.ek(os.path.isdir, ek.ek(os.path.join, dirName, x)), fileListWithoutLink)
+    remainingFolders = filter(lambda x: ek.ek(os.path.isdir, ek.ek(os.path.join, dirName, x)), fileList)
 
     if num_videoFiles == 0:
         returnStr += logHelper(u"There are no videofiles in folder: " + dirName, logger.DEBUG)
