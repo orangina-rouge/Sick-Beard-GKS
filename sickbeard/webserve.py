@@ -972,7 +972,7 @@ class ConfigProviders:
                       newznab_string='',
                       omgwtfnzbs_username=None, omgwtfnzbs_apikey=None,
                       tvtorrents_digest=None, tvtorrents_hash=None,
-                      torrentleech_key=None, gks_key=None,
+                      torrentleech_key=None, gks_key=None, elitetracker_key=None,
                       btn_api_key=None, hdbits_username=None, hdbits_passkey=None,
                       provider_order=None):
 
@@ -1041,6 +1041,8 @@ class ConfigProviders:
                 sickbeard.TORRENTLEECH = curEnabled
             elif curProvider == 'gks':
                 sickbeard.GKS = curEnabled
+            elif curProvider == 'elitetracker':
+                sickbeard.ELITETRACKER = curEnabled
             elif curProvider == 'btn':
                 sickbeard.BTN = curEnabled
             elif curProvider in newznabProviderDict:
@@ -1057,6 +1059,8 @@ class ConfigProviders:
         sickbeard.TORRENTLEECH_KEY = torrentleech_key.strip()
         
         sickbeard.GKS_KEY = gks_key.strip()
+
+        sickbeard.ELITETRACKER_KEY = elitetracker_key.strip()
 
         sickbeard.BTN_API_KEY = btn_api_key.strip()
 

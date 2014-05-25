@@ -21,6 +21,7 @@ __all__ = ['ezrss',
            'tvtorrents',
            'torrentleech',
            'gks',
+           'elitetracker',
            'womble',
            'btn',
            'omgwtfnzbs'
