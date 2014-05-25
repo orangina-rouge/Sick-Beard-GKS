@@ -119,7 +119,7 @@ class EliteTrackerProvider(generic.TorrentProvider):
         params = {"mode": "rss"}
 
         if search_params:
-            #params.update(search_params)
+            params.update(search_params)
 
         search_url = self.url + 'rdirect.php?type=search&order=desc&sort=normal&' + urllib.urlencode(params)
 
