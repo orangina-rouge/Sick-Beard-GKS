@@ -1042,6 +1042,8 @@ class ConfigProviders:
                 sickbeard.TORRENTLEECH = curEnabled
             elif curProvider == 'gks':
                 sickbeard.GKS = curEnabled
+            elif curProvider == 'kickass':
+                sickbeard.KICKASS = curEnabled
             elif curProvider == 'elitetracker':
                 sickbeard.ELITETRACKER = curEnabled
             elif curProvider == 'btn':
