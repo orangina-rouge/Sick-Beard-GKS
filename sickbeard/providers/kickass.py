@@ -139,6 +139,8 @@ class KICKASSProvider(generic.TorrentProvider):
     def _get_title_and_url(self, item):
         (title, url) = generic.TorrentProvider._get_title_and_url(self, item)
 
+        url = item.find('enclosure').get('url')
+
         filename = helpers.get_xml_text(item.find('title'))
 
         if filename:
