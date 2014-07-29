@@ -31,6 +31,7 @@ from sickbeard.common import Quality
 from sickbeard import logger
 from sickbeard import tvcache
 from sickbeard import helpers
+from sickbeard.exceptions import AuthException
 
 class KICKASSProvider(generic.TorrentProvider):
 
@@ -167,6 +168,34 @@ class KICKASSCache(tvcache.TVCache):
         # only poll every 15 minutes
         self.minTime = 15
 
+    def updateCache(self):
+        if not self.shouldUpdate():
+            return
+
+        if self._checkAuth(None):
+
+            data = self._getRSSData()
+
+            # As long as we got something from the provider we count it as an update
+            if data:
+                self.setLastUpdate()
+            else:
+                return []
+
+            logger.log(u"Clearing " + self.provider.name + " cache and updating with new information")
+            self._clearCache()
+
+            if self._checkAuth(data):
+                # By now we know we've got data and no auth errors, all we need to do is put it in the database
+                for item in data:
+                    self._parseItem(item)
+
+            else:
+                raise AuthException("Your authentication info for " + self.provider.name + " is incorrect, check your config")
+
+        else:
+            return []
+
     def _getRSSData(self):
 
         rss_url = 'http://kickass.to/tv/?rss=1'
@@ -179,6 +208,16 @@ class KICKASSCache(tvcache.TVCache):
             return None
 
         return data
+
+    def _parseItem(self, item):
+        (title, url) = self.provider._get_title_and_url(item)
+
+        if title and url:
+            logger.log(u"Adding item to results: " + title, logger.DEBUG)
+            self._addCacheEntry(title, url)
+        else:
+            logger.log(u"The data returned from the " + self.provider.name + " is incomplete, this result is unusable", logger.ERROR)
+            return
 
     def _checkAuth(self, parsedXML):
             return self.provider._checkAuthFromData(parsedXML)
