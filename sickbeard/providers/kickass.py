@@ -40,7 +40,7 @@ class KICKASSProvider(generic.TorrentProvider):
 
         self.supportsBacklog = True
         self.cache = KICKASSCache(self)
-        self.url = 'http://kickass.to/'
+        self.url = 'http://kickass.so'
 
     def isEnabled(self):
         return sickbeard.KICKASS
@@ -198,7 +198,7 @@ class KICKASSCache(tvcache.TVCache):
 
     def _getRSSData(self):
 
-        rss_url = 'http://kickass.to/tv/?rss=1'
+        rss_url = self.url + '/?rss=1'
         logger.log(self.provider.name + u" cache update URL: " + rss_url, logger.DEBUG)
 
         data = self.provider.getURL(rss_url)
